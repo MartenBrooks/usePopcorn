@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const tempMovieData = [
   {
@@ -49,57 +49,20 @@ const tempWatchedData = [
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
-const KEY = '4a6ba38d';
+
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [query, setQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(
-    function () {
-      async function fetchMovies() {
-        try {
-          setError('');
-          setIsLoading(true);
-          if (!query) {
-            throw new Error('Try searh bar!👆');
-          }
-          const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
-          );
-          if (!res.ok) {
-            throw new Error('Something went wrong with fetching movies');
-          }
-          const data = await res.json();
-          if (data.Response === 'False') {
-            console.log(data.Response);
-            throw new Error('Movie not found');
-          }
-          setMovies(data.Search);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-      fetchMovies();
-    },
-    [query]
-  );
+  const [movies, setMovies] = useState(tempMovieData);
+  const [watched, setWatched] = useState(tempWatchedData);
   return (
     <>
       <NavBar movies={movies}>
         <Logo />
-        <Search query={query} onSearch={setQuery} />
+        <Search />
         <NumResults movies={movies} />
       </NavBar>
       <Main>
         <Box>
-          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
-          {isLoading && !error && <Loader />}
-          {!isLoading && !error && <MovieList movies={movies} />}
-          {error && <ErrorMessage message={error} />}
+          <MovieList movies={movies} />
         </Box>
         <Box>
           <WatchedSummary watched={watched} />
@@ -109,16 +72,7 @@ export default function App() {
     </>
   );
 }
-function Loader() {
-  return <p className='loader'>Loading</p>;
-}
-function ErrorMessage({ message }) {
-  return (
-    <p className='error'>
-      <span>🚫</span> {message}
-    </p>
-  );
-}
+
 function NavBar({ children }) {
   return <nav className='nav-bar'>{children}</nav>;
 }
@@ -130,14 +84,15 @@ function Logo() {
     </div>
   );
 }
-function Search({ query, onSearch }) {
+function Search() {
+  const [query, setQuery] = useState('');
   return (
     <input
       className='search'
       type='text'
       placeholder='Search movies...'
       value={query}
-      onChange={(e) => onSearch(e.target.value)}
+      onChange={(e) => setQuery(e.target.value)}
     />
   );
 }
